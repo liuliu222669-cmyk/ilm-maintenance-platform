@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🎬 Film Maintenance Platform | Login/Register</title>
+<style>
+  body {
+    background: radial-gradient(circle at center, #000, #220000);
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex; justify-content: center; align-items: center;
+    height: 100vh; margin: 0;
+  }
+  .box {
+    background: rgba(30, 0, 0, 0.8);
+    padding: 30px 40px;
+    border-radius: 12px;
+    width: 320px;
+    box-shadow: 0 0 15px #cc0000aa;
+  }
+  h2 {
+    margin: 0 0 20px;
+    text-align: center;
+    font-weight: 700;
+  }
+  label {
+    display: block;
+    margin-top: 15px;
+    font-size: 0.9em;
+  }
+  input[type="text"], input[type="password"], input[type="tel"] {
+    width: 100%;
+    padding: 8px 12px;
+    margin-top: 6px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+  }
+  button {
+    margin-top: 25px;
+    width: 100%;
+    background: #cc0000;
+    border: none;
+    color: white;
+    padding: 12px 0;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #e53030;
+  }
+  .toggle {
+    margin-top: 15px;
+    text-align: center;
+    cursor: pointer;
+    color: #ff6666;
+  }
+  .error {
+    margin-top: 15px;
+    color: #ff4444;
+    font-size: 0.9em;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="box" id="authBox">
+    <h2 id="formTitle">登录</h2>
+    <form id="authForm">
+      <label for="phone">手机号:</label>
+      <input type="tel" id="phone" required pattern="^1\d{10}$" placeholder="请输入11位手机号" />
+      <label for="password">密码:</label>
+      <input type="password" id="password" required placeholder="请输入密码" minlength="6" />
+      <div id="inviteField" style="display:none;">
+        <label for="inviteCode">邀请码:</label>
+        <input type="text" id="inviteCode" placeholder="请输入邀请码" />
+      </div>
+      <button type="submit" id="submitBtn">登录</button>
+    </form>
+    <div class="error" id="errorMsg"></div>
+    <div class="toggle" id="toggleForm">没有账号？点此注册</div>
+  </div>
+
+<script>
+  const formTitle = document.getElementById('formTitle');
+  const authForm = document.getElementById('authForm');
+  const toggleForm = document.getElementById('toggleForm');
+  const inviteField = document.getElementById('inviteField');
+  const submitBtn = document.getElementById('submitBtn');
+  const errorMsg = document.getElementById('errorMsg');
+
+  let isLogin = true;
+
+  toggleForm.onclick = () => {
+    isLogin = !isLogin;
+    if (isLogin) {
+      formTitle.innerText = '登录';
+      submitBtn.innerText = '登录';
+      inviteField.style.display = 'none';
+      toggleForm.innerText = '没有账号？点此注册';
+      errorMsg.innerText = '';
+    } else {
+      formTitle.innerText = '注册';
+      submitBtn.innerText = '注册';
+      inviteField.style.display = 'block';
+      toggleForm.innerText = '已有账号？点此登录';
+      errorMsg.innerText = '';
+    }
+  };
+
+  authForm.onsubmit = e => {
+    e.preventDefault();
+    errorMsg.innerText = '';
+    const phone = document.getElementById('phone').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const inviteCode = document.getElementById('inviteCode').value.trim();
+
+    // 简单手机号格式检查（中国手机号11位）
+    if (!/^1\d{10}$/.test(phone)) {
+      errorMsg.innerText = '请输入有效的11位手机号';
+      return;
+    }
+    if (password.length < 6) {
+      errorMsg.innerText = '密码至少6位';
+      return;
+    }
+
+    if (isLogin) {
+      // 登录流程
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      if (!users[phone]) {
+        errorMsg.innerText = '用户不存在，请先注册';
+        return;
+      }
+      if (users[phone].password !== password) {
+        errorMsg.innerText = '密码错误';
+        return;
+      }
+      // 登录成功
+      localStorage.setItem('currentUser', phone);
+      alert('登录成功');
+      location.href = 'index.html';
+    } else {
+      // 注册流程
+      if (inviteCode !== 'INVITE2025') {
+        errorMsg.innerText = '邀请码错误';
+        return;
+      }
+      const users = JSON.parse(localStorage.getItem('users') || '{}');
+      if (users[phone]) {
+        errorMsg.innerText = '该手机号已注册，请直接登录';
+        return;
+      }
+      // 注册成功，保存用户
+      users[phone] = { password, score: 0, records: [] };
+      localStorage.setItem('users', JSON.stringify(users));
+      alert('注册成功，请登录');
+      // 切换回登录状态
+      isLogin = true;
+      formTitle.innerText = '登录';
+      submitBtn.innerText = '登录';
+      inviteField.style.display = 'none';
+      toggleForm.innerText = '没有账号？点此注册';
+      errorMsg.innerText = '';
+      authForm.reset();
+    }
+  };
+</script>
+
+</body>
+</html>

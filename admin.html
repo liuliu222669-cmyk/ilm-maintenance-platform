@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🎬 Film Maintenance Platform | Admin</title>
+<style>
+  body {
+    background: radial-gradient(circle at center, #000, #220000);
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0; padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .login-box {
+    max-width: 320px;
+    margin: 80px auto;
+    background: rgba(30, 0, 0, 0.9);
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px #cc0000aa;
+  }
+  label {
+    display: block;
+    margin-top: 15px;
+    font-size: 0.9em;
+  }
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 8px 12px;
+    margin-top: 6px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+  }
+  button {
+    margin-top: 25px;
+    width: 100%;
+    background: #cc0000;
+    border: none;
+    color: white;
+    padding: 12px 0;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #e53030;
+  }
+  .error {
+    margin-top: 15px;
+    color: #ff4444;
+    font-size: 0.9em;
+    text-align: center;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+  }
+  th, td {
+    border: 1px solid #ff4444;
+    padding: 10px;
+    text-align: center;
+  }
+  th {
+    background: #cc0000;
+  }
+  #logoutBtn {
+    background: #cc0000;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    float: right;
+    margin-bottom: 10px;
+  }
+  #logoutBtn:hover {
+    background: #e53030;
+  }
+</style>
+</head>
+<body>
+
+<div id="adminLogin" class="login-box">
+  <h1>管理员登录</h1>
+  <form id="adminForm">
+    <label for="adminUser">用户名:</label>
+    <input type="text" id="adminUser" required placeholder="admin" />
+    <label for="adminPass">密码:</label>
+    <input type="password" id="adminPass" required placeholder="123456" />
+    <button type="submit">登录</button>
+  </form>
+  <div class="error" id="errorMsg"></div>
+</div>
+
+<div id="adminPanel" style="display:none;">
+  <button id="logoutBtn">退出登录</button>
+  <h1>用户积分统计</h1>
+  <table>
+    <thead>
+      <tr><th>手机号</th><th>积分</th><th>维护剧目记录数</th></tr>
+    </thead>
+    <tbody id="userTableBody"></tbody>
+  </table>
+</div>
+
+<script>
+  const adminLoginDiv = document.getElementById("adminLogin");
+  const adminPanelDiv = document.getElementById("adminPanel");
+  const errorMsg = document.getElementById("errorMsg");
+  const userTableBody = document.getElementById("userTableBody");
+
+  document.getElementById("adminForm").onsubmit = e => {
+    e.preventDefault();
+    const user = document.getElementById("adminUser").value.trim();
+    const pass = document.getElementById("adminPass").value.trim();
+
+    if(user === "admin" && pass === "123456"){
+      adminLoginDiv.style.display = "none";
+      adminPanelDiv.style.display = "block";
+      loadUserData();
+    } else {
+      errorMsg.innerText = "用户名或密码错误";
+    }
+  };
+
+  function loadUserData(){
+    const users = JSON.parse(localStorage.getItem("users") || "{}");
+    userTableBody.innerHTML = "";
+    for(const phone in users){
+      const user = users[phone];
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${phone}</td><td>${user.score || 0}</td><td>${(user.records || []).length}</td>`;
+      userTableBody.appendChild(tr);
+    }
+  }
+
+  document.getElementById("logoutBtn").onclick = () => {
+    adminPanelDiv.style.display = "none";
+    adminLoginDiv.style.display = "block";
+    errorMsg.innerText = "";
+    document.getElementById("adminForm").reset();
+  };
+</script>
+
+</body>
+</html>

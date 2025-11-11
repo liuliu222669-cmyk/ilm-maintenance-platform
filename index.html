@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🎬 Film Maintenance Platform | Tasks</title>
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    color: #fff;
+    margin: 0; padding: 0;
+    overflow-x: hidden;
+    background: radial-gradient(circle at center, #111, #000);
+    animation: bgGlow 8s infinite alternate;
+  }
+  @keyframes bgGlow {
+    0% { background: radial-gradient(circle at center, #000 0%, #111 100%); }
+    100% { background: radial-gradient(circle at center, #220000 0%, #000 100%); }
+  }
+  header {
+    background: rgba(20,20,20,0.8);
+    text-align: center;
+    padding: 20px 10px;
+    border-bottom: 2px solid red;
+    position: relative;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 1.8em;
+  }
+  header button {
+    position: absolute;
+    right: 15px;
+    top: 18px;
+    background: #cc0000;
+    border: none;
+    padding: 6px 12px;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  header button:hover {
+    background: #e53030;
+  }
+  .container {
+    max-width: 700px;
+    margin: 40px auto;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 0 20px rgba(255,0,0,0.2);
+  }
+  button {
+    background: red;
+    border: none;
+    padding: 12px 20px;
+    color: #fff;
+    font-size: 1em;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #cc0000;
+  }
+  .progress-bar {
+    width: 100%;
+    background: #333;
+    border-radius: 10px;
+    height: 20px;
+    margin: 15px 0;
+  }
+  .progress {
+    width: 0%;
+    height: 100%;
+    background: red;
+    border-radius: 10px;
+    transition: width 1s linear;
+  }
+  iframe {
+    width: 100%;
+    height: 315px;
+    border-radius: 10px;
+  }
+  .scoreboard {
+    margin-top: 15px;
+    background: rgba(255,255,255,0.05);
+    padding: 10px;
+    border-radius: 10px;
+  }
+  #recordPage {
+    display: none;
+    text-align: left;
+    margin-top: 20px;
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 10px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎬 Film Maintenance Platform | Official Partner</h1>
+  <button id="logoutBtn">退出登录</button>
+</header>
+
+<div class="container">
+  <h2 id="showTitle">点击“开始任务”以分配剧目</h2>
+  <div id="videoArea"></div>
+  <div class="progress-bar"><div class="progress" id="progress"></div></div>
+  <p id="timer">任务倒计时：--:--</p>
+  <button id="startBtn">开始任务</button>
+  <div class="scoreboard">
+    <p>当前积分：<span id="score">0</span></p>
+    <button id="viewRecords">查看任务记录</button>
+  </div>
+  <div id="recordPage">
+    <h3>已维护剧目：</h3>
+    <ul id="recordList"></ul>
+  </div>
+</div>
+
+<script>
+const shows = [
+  {title: "Breaking Bad", link: "https://www.youtube.com/embed/HhesaQXLuRY"},
+  {title: "Stranger Things", link: "https://www.youtube.com/embed/b9EkMc79ZSU"},
+  {title: "Game of Thrones", link: "https://www.youtube.com/embed/KPLWWIOCOOQ"},
+  {title: "The Boys", link: "https://www.youtube.com/embed/M1bhOaLV4FU"},
+  {title: "Peaky Blinders", link: "https://www.youtube.com/embed/oVzVdvGIC7U"},
+  {title: "Money Heist", link: "https://www.youtube.com/embed/fvCdLmxnkj0"}
+];
+
+let currentUser = localStorage.getItem("currentUser");
+if(!currentUser){
+  alert("请先登录！");
+  location.href = "login.html";
+}
+const users = JSON.parse(localStorage.getItem("users") || "{}");
+if(!users[currentUser]){
+  alert("用户不存在或已被删除");
+  localStorage.removeItem("currentUser");
+  location.href = "login.html";
+}
+
+let score = users[currentUser].score || 0;
+let records = users[currentUser].records || [];
+
+document.getElementById("score").innerText = score;
+
+document.getElementById("startBtn").addEventListener("click", () => {
+  if(document.getElementById("progress").style.width !== "0%"){
+    alert("已有任务进行中，请等待完成！");
+    return;
+  }
+  const randomShow = shows[Math.floor(Math.random() * shows.length)];
+  document.getElementById("showTitle").innerText = `🎞 当前剧目：${randomShow.title}`;
+  document.getElementById("videoArea").innerHTML = `<iframe src="${randomShow.link}" allowfullscreen></iframe>`;
+  startTask(randomShow.title);
+});
+
+function startTask(showName) {
+  let time = 120; // 2分钟
+  const progress = document.getElementById("progress");
+  const timerDisplay = document.getElementById("timer");
+  progress.style.width = "0%";
+  let elapsed = 0;
+
+  const countdown = setInterval(() => {
+    elapsed++;
+    time--;
+    progress.style.width = (elapsed / 120 * 100) + "%";
+    const m = Math.floor(time / 60);
+    const s = time % 60;
+    timerDisplay.innerText = `任务倒计时：${m}:${s < 10 ? "0" + s : s}`;
+    if (time <= 0) {
+      clearInterval(countdown);
+      taskComplete(showName);
+    }
+  }, 1000);
+}
+
+function taskComplete(showName) {
+  alert("✅ 任务完成！获得 1 积分！");
+  score++;
+  records.push(showName);
+  users[currentUser].score = score;
+  users[currentUser].records = records;
+  localStorage.setItem("users", JSON.stringify(users));
+  document.getElementById("score").innerText = score;
+}
+
+document.getElementById("viewRecords").addEventListener("click", () => {
+  const recordPage = document.getElementById("recordPage");
+  const list = document.getElementById("recordList");
+  recordPage.style.display = recordPage.style.display === "none" ? "block" : "none";
+  list.innerHTML = records.length ? records.map(r => `<li>${r}</li>`).join('') : "<li>暂无记录</li>";
+});
+
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  localStorage.removeItem("currentUser");
+  location.href = "login.html";
+});
+</script>
+
+</body>
+</html>
